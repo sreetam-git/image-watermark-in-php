@@ -1,0 +1,99 @@
+
+//controller
+function index() {
+    $sql = $this->File_upload_model->browse_file();
+    
+    if ($sql) {
+        echo json_encode($sql);
+    } else {
+        echo json_encode($sql);
+    }
+}
+
+
+//model
+function browse_file() {
+
+        $image = $this->upload_profiles('image');
+        // print_r($image);die;
+        if ($image != '') {
+
+            $image_full_path = base_url() . "assets/profiles/" . $image;
+            $data = ['image' => $image, 'image_full_path' => $image_full_path];
+
+            return array('error_code' => "valid", 'message' => "Image Updated Successfully", 'data' => $data);
+        } else {
+            return array('error_code' => "invalid", 'message' => "Please check file size");
+    }
+}
+
+    function upload_profiles($file) {
+        $config['upload_path'] = 'assets/profiles';
+        $config['allowed_types'] = 'jpg|jpeg|png';
+        $config['max_size'] = '5120'; // max_size in kb
+        $config['max_width'] = 0;
+        $config['max_height'] = 0;
+        $config['file_name'] = time() . rand();
+        $config['overwrite'] = TRUE;
+
+        $this->load->library('upload', $config);
+        $this->upload->initialize($config);
+
+        if ($this->upload->do_upload($file)) {
+            $uploadData = $this->upload->data();
+            $filename = $uploadData['file_name'];
+
+            $path = 'assets/profiles/' . $filename;
+            $this->watermark_texts($path);
+            $file_name = $filename;
+        }
+        return $file_name;
+    }
+
+    function watermark_texts($path) {
+        $config['source_image'] = $path;
+        $config['wm_text'] = 'Tadiboyena Matrimony';
+        $config['wm_type'] = 'text';
+        $config['wm_font_path'] = './fonts/Lato-Regular.ttf';
+        $config['wm_font_size'] = 30;
+        $config['wm_font_color'] = '8cb4cd';
+        $config['wm_vrt_alignment'] = 'middle';
+        $config['wm_hor_alignment'] = 'center';
+        $config['wm_padding'] = '0';
+        $this->image_lib->initialize($config);
+        if (!$this->image_lib->watermark()) {
+            //echo $this->image_lib->display_errors();
+            return TRUE;
+        } else {
+            //echo 'Successfully updated image with watermark';
+            return TRUE;
+        }
+    }
+
+    function watermark_texts_image($path) {
+        $this->load->library('image_lib');
+
+        $config['source_image'] = $path;
+        // $config['wm_text'] = 'Tadiboyena Matrimony';
+        $config['wm_type'] = 'overlay';
+        //$config['wm_font_path'] = FCPATH . 'fonts/Lato-Regular.ttf';
+        // $config['wm_font_path'] = './system/fonts/texb.ttf';
+        $config['wm_overlay_path'] = 'assets/tadiboyena.com.png';
+        // $config['wm_font_size'] = 40;
+        // $config['wm_font_color'] = 'd4237d';
+        $config['wm_vrt_alignment'] = 'middle';
+        $config['wm_hor_alignment'] = 'left';
+        // $config['wm_vrt_offset'] = 150;
+        // $config['wm_hor_offset'] = 50; 
+        // $config['wm_padding'] = 20;
+        // $config['wm_opacity'] = 50;
+        $this->image_lib->initialize($config);
+        if (!$this->image_lib->watermark()) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+
+
+reference : https://codeigniter.com/userguide3/libraries/image_lib.html?highlight=watermark#CI_Image_lib::watermark
